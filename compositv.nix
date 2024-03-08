@@ -87,7 +87,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.tv = {
     isNormalUser = true;
-    extraGroups = [ "input" "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "audio" "input" "video" "wheel" ]; # Enable ‘sudo’ for the user.
     packages = with pkgs; [
       firefox
       freetube
