@@ -128,6 +128,7 @@ exec dotoold
 set $term alacritty
 set $menu fuzzel | xargs swaymsg exec --
 font monospace 24
+seat seat0 xcursor_theme "Adwaita" 96
 
 bindsym xf86close kill
 bindsym xf86audiomedia exec $menu & swaymsg mode "app"
