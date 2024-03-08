@@ -1,2 +1,0 @@
-#!/bin/dash
-echo key $1 | dotool

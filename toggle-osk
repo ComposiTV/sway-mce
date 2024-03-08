@@ -1,2 +1,0 @@
-#!/bin/dash
-kill -s 34 `pidof wvkbd-mobintl`

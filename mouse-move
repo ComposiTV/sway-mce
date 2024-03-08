@@ -1,2 +1,0 @@
-#!/bin/dash
-echo mousemove $1 $2 | dotoolc

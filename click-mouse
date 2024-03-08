@@ -1,2 +1,0 @@
-#!/bin/dash
-echo click $1 | dotoolc
