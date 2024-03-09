@@ -6,16 +6,20 @@
 
 let
 
+  home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+
   configure-gtk = pkgs.writeTextFile {
     name = "configure-gtk";
     destination = "/bin/configure-gtk";
     executable = true;
     text = let
       schema = pkgs.gsettings-desktop-schemas;
-      datadir = "${schema}/share/gsettings-schemas/${schema.name}";
+      datadir = "${schema}/share/gsettings-schemas/${schema.name}/glib-2.0/schemas";
     in ''
-      gnome_schema=org.gnome.desktop-interface
-      gsettings set $gnome_schema gtk-theme 'Dracula'
+      gnome_schema=org.gnome.desktop.interface
+      gsettings --schemadir ${datadir} set $gnome_schema gtk-theme 'Dracula'
+      gsettings --schemadir ${datadir} set $gnome_schema cursor-theme 'Adwaita'
+      gsettings --schemadir ${datadir} set $gnome_schema cursor-size 64
     '';
   };
 
@@ -69,9 +73,16 @@ let
 in
 
 {
+  imports = [
+    (import "${home-manager}/nixos")
+  ];
+
+  programs.dconf.enable = true;
+
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
+    extraPackages = with pkgs; [ ];
   };
 
   # Enable sound.
@@ -94,10 +105,13 @@ in
     ];
   };
 
+  environment.sessionVariables = {
+    QT_STYLE_OVERRIDE = "Dracula";
+  };
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    alacritty
     click-mouse
     configure-gtk
     dbus
@@ -105,13 +119,15 @@ in
     dotool
     dracula-theme
     fuzzel
+    glib
     gnome3.adwaita-icon-theme
+    gsettings-desktop-schemas
     mako
     mouse-move
     pavucontrol
     send-key
     toggle-osk
-    v4l-utils
+#    v4l-utils
     wayland
     wvkbd
     xdg-utils
@@ -120,15 +136,13 @@ in
   environment.etc = {
     "sway/config.d/compositv.conf" = {
       text = ''
-exec dbus-sway-environment
-exec configure-gtk
 exec dotoold
 # 360 - OK
 # 385 - TV
 set $term alacritty
 set $menu fuzzel | xargs swaymsg exec --
 font monospace 24
-seat seat0 xcursor_theme "Adwaita" 96
+seat seat0 xcursor_theme "Adwaita" 64
 
 bindsym xf86close kill
 bindsym xf86audiomedia exec $menu & swaymsg mode "app"
@@ -177,7 +191,9 @@ mode "keyboard" {
     bindsym xf86close exec toggle-osk && swaymsg mode "default"
     bindsym xf86dvd exec toggle-osk && swaymsg mode "default"
     bindsym xf86audiomedia exec toggle-osk && $menu & swaymsg mode "app"
-}        
+}
+exec dbus-sway-environment
+exec configure-gtk
       '';
     };
     "xdg/fuzzel/fuzzel.ini" = {
@@ -185,6 +201,21 @@ mode "keyboard" {
         font=monospace:size=24
       '';
     };
+  };
+
+  documentation.nixos.enable = false;
+
+  home-manager.users.tv = {
+    home.pointerCursor = {
+      name = "Adwaita";
+      package = pkgs.gnome.adwaita-icon-theme;
+      size = 96;
+      x11 = {
+        enable = true;
+        defaultCursor = "Adwaita";
+      };
+    };
+    home.stateVersion = "24.05";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
