@@ -8,6 +8,11 @@ let
 
   home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
 
+  ctv-logo = pkgs.fetchurl {
+    url = "https://4906.org/m/compositv.png";
+    sha256 = "e54994679b94f7e1e42212bd6a58b733005f6aec4e8cf6102366283e6cd91e75";
+  };
+
   configure-gtk = pkgs.writeTextFile {
     name = "configure-gtk";
     destination = "/bin/configure-gtk";
@@ -19,7 +24,7 @@ let
       gnome_schema=org.gnome.desktop.interface
       gsettings --schemadir ${datadir} set $gnome_schema gtk-theme 'Dracula'
       gsettings --schemadir ${datadir} set $gnome_schema cursor-theme 'Adwaita'
-      gsettings --schemadir ${datadir} set $gnome_schema cursor-size 64
+      gsettings --schemadir ${datadir} set $gnome_schema cursor-size 32
     '';
   };
 
@@ -77,6 +82,28 @@ in
     (import "${home-manager}/nixos")
   ];
 
+  programs.firefox.enable = true;
+  programs.firefox.policies = {
+    DisablePocket = true;
+    ExtensionSettings = {
+      "uBlock0@raymondhill.net" = {
+        installation_mode = "normal_installed";
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+      };
+    };
+  };
+
+#  nixpkgs.config.packageOverrides = pkgs: {
+#    nur = import (builtins.fetchTarball "https://github.com/nix-community/NUR/archive/master.tar.gz") {
+#      inherit pkgs;
+#    };
+#  };
+
+  boot.plymouth = {
+    enable = true;
+    logo = ctv-logo;
+  };
+
   programs.dconf.enable = true;
 
   programs.sway = {
@@ -100,8 +127,10 @@ in
     isNormalUser = true;
     extraGroups = [ "audio" "input" "video" "wheel" ]; # Enable ‘sudo’ for the user.
     packages = with pkgs; [
-      firefox
-      freetube
+#      firefox
+#      nur.repos.rycee.firefox-addons.ublock-origin
+      minitube
+      vlc
     ];
   };
 
@@ -141,9 +170,10 @@ exec dotoold
 # 385 - TV
 set $term alacritty
 set $menu fuzzel | xargs swaymsg exec --
-font monospace 24
-seat seat0 xcursor_theme "Adwaita" 64
-
+font monospace 12
+seat seat0 xcursor_theme "Adwaita" 32
+output * scale 2
+output * bg ${ctv-logo} center
 bindsym xf86close kill
 bindsym xf86audiomedia exec $menu & swaymsg mode "app"
 bindsym xf86info fullscreen
@@ -159,6 +189,7 @@ mode "select" {
     bindsym Down focus down
     bindsym Up focus up
     bindsym Right focus right
+    bindcode 360 focus mode_toggle
     bindcode 385 mode "move"
     bindsym xf86close mode "default"
 }
@@ -167,14 +198,15 @@ mode "move" {
     bindsym Down move down
     bindsym Up move up
     bindsym Right move right
-    bindcode 385 mode "split"
+    bindcode 385 mode "size"
     bindsym xf86close mode "default"
 }
-mode "split" {
-    bindsym Up splitv
-    bindsym Down splitv
-    bindsym Right splith
-    bindsym Left splith
+mode "size" {
+    bindsym Up resize shrink height 16px
+    bindsym Down resize grow height 16px
+    bindsym Right resize grow width 16px
+    bindsym Left resize shrink width 16px
+    bindcode 360 floating toggle
     bindcode 385 mode "default"
     bindsym xf86close mode "default"
 }
@@ -189,8 +221,18 @@ mode "keyboard" {
     bindsym Right exec mouse-move 16 0
     bindcode 360 exec click-mouse left
     bindsym xf86close exec toggle-osk && swaymsg mode "default"
-    bindsym xf86dvd exec toggle-osk && swaymsg mode "default"
+    bindsym xf86dvd exec toggle-osk && swaymsg mode "mouse"
     bindsym xf86audiomedia exec toggle-osk && $menu & swaymsg mode "app"
+}
+mode "mouse" {
+    bindsym Left exec mouse-move -16 0
+    bindsym Down exec mouse-move 0 16
+    bindsym Up exec mouse-move 0 -16
+    bindsym Right exec mouse-move 16 0
+    bindcode 360 exec click-mouse left
+    bindsym xf86close mode "default"
+    bindsym xf86dvd mode "default"
+    bindsym xf86audiomedia exec $menu & swaymsg mode "app"
 }
 exec dbus-sway-environment
 exec configure-gtk
@@ -198,7 +240,7 @@ exec configure-gtk
     };
     "xdg/fuzzel/fuzzel.ini" = {
       text = ''
-        font=monospace:size=24
+        font=monospace:size=12
       '';
     };
   };
@@ -209,7 +251,7 @@ exec configure-gtk
     home.pointerCursor = {
       name = "Adwaita";
       package = pkgs.gnome.adwaita-icon-theme;
-      size = 96;
+      size = 32;
       x11 = {
         enable = true;
         defaultCursor = "Adwaita";
