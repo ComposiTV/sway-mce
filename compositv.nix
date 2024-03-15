@@ -6,7 +6,7 @@
 
 let
 
-  home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+#  home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
 
   ctv-logo = pkgs.fetchurl {
     url = "https://4906.org/m/compositv.png";
@@ -78,9 +78,23 @@ let
 in
 
 {
-  imports = [
-    (import "${home-manager}/nixos")
-  ];
+#  imports = [
+#    (import "${home-manager}/nixos")
+#  ];
+
+  security.polkit = {
+    extraConfig = ''
+      polkit.addRule(function(action,subject){
+        if(action.id == "org.freedesktop.systemd1.manage-units" 
+        || action.id == "org.freedesktop.systemd1.manage-unit-files") {
+          if(action.lookup("unit") == "poweroff.target"
+          || action.lookup("unit") == "reboot.target") {
+            return polkit.Result.YES;
+          }
+        }
+      });
+    '';
+  };
 
   programs.firefox.enable = true;
   programs.firefox.policies = {
@@ -127,6 +141,8 @@ in
     isNormalUser = true;
     extraGroups = [ "audio" "input" "video" "wheel" ]; # Enable ‘sudo’ for the user.
     packages = with pkgs; [
+#      alacritty
+#      wev
 #      firefox
 #      nur.repos.rycee.firefox-addons.ublock-origin
       minitube
@@ -177,6 +193,7 @@ output * bg ${ctv-logo} center
 bindsym xf86close kill
 bindsym xf86audiomedia exec $menu & swaymsg mode "app"
 bindsym xf86info fullscreen
+bindsym xf86sleep exec swaynag -t warning -m "You pressed the power button." -B 'Restart' 'reboot' -B 'Power off' 'poweroff'
 
 mode "app" {
     bindcode 360 exec send-key enter && swaymsg mode "default"
@@ -223,6 +240,7 @@ mode "keyboard" {
     bindsym xf86close exec toggle-osk && swaymsg mode "default"
     bindsym xf86dvd exec toggle-osk && swaymsg mode "mouse"
     bindsym xf86audiomedia exec toggle-osk && $menu & swaymsg mode "app"
+    bindsym xf86info fullscreen
 }
 mode "mouse" {
     bindsym Left exec mouse-move -16 0
@@ -233,6 +251,7 @@ mode "mouse" {
     bindsym xf86close mode "default"
     bindsym xf86dvd mode "default"
     bindsym xf86audiomedia exec $menu & swaymsg mode "app"
+    bindsym xf86info fullscreen
 }
 exec dbus-sway-environment
 exec configure-gtk
@@ -247,18 +266,23 @@ exec configure-gtk
 
   documentation.nixos.enable = false;
 
-  home-manager.users.tv = {
-    home.pointerCursor = {
-      name = "Adwaita";
-      package = pkgs.gnome.adwaita-icon-theme;
-      size = 32;
-      x11 = {
-        enable = true;
-        defaultCursor = "Adwaita";
-      };
-    };
-    home.stateVersion = "24.05";
+  system.autoUpgrade = {
+    enable = true;
+    operation = "boot";
   };
+
+#  home-manager.users.tv = {
+#    home.pointerCursor = {
+#      name = "Adwaita";
+#      package = pkgs.gnome.adwaita-icon-theme;
+#      size = 32;
+#      x11 = {
+#        enable = true;
+#        defaultCursor = "Adwaita";
+#      };
+#    };
+#    home.stateVersion = "24.05";
+#  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
