@@ -10,7 +10,7 @@ let
 
   ctv-logo = pkgs.fetchurl {
     url = "https://4906.org/m/compositv.png";
-    sha256 = "e54994679b94f7e1e42212bd6a58b733005f6aec4e8cf6102366283e6cd91e75";
+    sha256 = "0d331526923872f6482464890111a5d1404e63af089d80e6f7d5f2e8234b8676";
   };
 
   configure-gtk = pkgs.writeTextFile {
