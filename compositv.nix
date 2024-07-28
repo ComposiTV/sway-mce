@@ -44,7 +44,7 @@ let
     destination = "/bin/send-key";
     executable = true;
     text = ''
-      echo key $1 | dotoolc
+      echo key $1 | dotool
     '';
   };
 
@@ -62,7 +62,7 @@ let
     destination = "/bin/click-mouse";
     executable = true;
     text = ''
-      echo click $1 | dotoolc
+      echo click $1 | dotool
     '';
   };
 
@@ -141,7 +141,7 @@ in
     isNormalUser = true;
     extraGroups = [ "audio" "input" "video" "wheel" ]; # Enable ‘sudo’ for the user.
     packages = with pkgs; [
-#      alacritty
+      alacritty
 #      wev
 #      firefox
 #      nur.repos.rycee.firefox-addons.ublock-origin
@@ -172,6 +172,7 @@ in
     pavucontrol
     send-key
     toggle-osk
+    libcec
 #    v4l-utils
     wayland
     wvkbd
@@ -181,24 +182,26 @@ in
   environment.etc = {
     "sway/config.d/compositv.conf" = {
       text = ''
-exec dotoold
-# 360 - OK
-# 385 - TV
+# Mod4+Mod1+y = OK
+# Mod4+Mod1+n = Stop
+# Mod4+Mod1+b = Back
+# Mod4+Mod1+m = Play/Pause
+# Mod4+Mod1+e = Power
 set $term alacritty
 set $menu fuzzel | xargs swaymsg exec --
 font monospace 12
 seat seat0 xcursor_theme "Adwaita" 32
 output * scale 2
 output * bg ${ctv-logo} center
-bindsym xf86close kill
-bindsym xf86audiomedia exec $menu & swaymsg mode "app"
-bindsym xf86info fullscreen
-bindsym xf86sleep exec swaynag -t warning -m "You pressed the power button." -B 'Restart' 'reboot' -B 'Power off' 'poweroff'
-
+bindsym Mod4+Mod1+n kill
+bindsym Mod4+Mod1+m exec $menu & swaymsg mode "app"
+bindsym Mod4+Mod1+f fullscreen
+bindsym Mod4+Mod1+e exec swaynag -t warning -m "You pressed the power button." -B 'Restart' 'reboot' -B 'Power off' 'poweroff'
+bindsym Mod4+Mod1+r reload
 mode "app" {
-    bindcode 360 exec send-key enter && swaymsg mode "default"
-    bindsym xf86close exec send-key esc && swaymsg mode "default"
-    bindsym xf86dvd exec send-key esc && toggle-osk && swaymsg mode "keyboard"
+    bindsym Mod4+Mod1+y exec send-key enter && swaymsg mode "default"
+    bindsym Mod4+Mod1+n exec send-key esc && swaymsg mode "default"
+    bindsym Mod4+Mod1+b exec send-key esc && toggle-osk && swaymsg mode "keyboard"
 }
 
 mode "select" {
@@ -206,55 +209,52 @@ mode "select" {
     bindsym Down focus down
     bindsym Up focus up
     bindsym Right focus right
-    bindcode 360 focus mode_toggle
-    bindcode 385 mode "move"
-    bindsym xf86close mode "default"
+    bindsym Mod4+Mod1+y focus mode_toggle
+    bindsym Mod4+Mod1+n mode "default"
+    bindsym Mod4+Mod1+b mode "move"
 }
 mode "move" {
     bindsym Left move left
     bindsym Down move down
     bindsym Up move up
     bindsym Right move right
-    bindcode 385 mode "size"
-    bindsym xf86close mode "default"
+    bindsym Mod4+Mod1+n mode "default"
+    bindsym Mod4+Mod1+b mode "size"
 }
 mode "size" {
     bindsym Up resize shrink height 16px
     bindsym Down resize grow height 16px
     bindsym Right resize grow width 16px
     bindsym Left resize shrink width 16px
-    bindcode 360 floating toggle
-    bindcode 385 mode "default"
-    bindsym xf86close mode "default"
+    bindsym Mod4+Mod1+y floating toggle
+    bindsym Mod4+Mod1+n mode "default"
+    bindsym Mod4+Mod1+b mode "default"
 }
-bindcode 385 mode "select"
+#bindsym Mod4+Mod1+s mode "select"
 
 exec wvkbd-mobintl --hidden
-bindsym xf86dvd exec toggle-osk && swaymsg mode "keyboard"
+bindsym Mod4+Mod1+b exec toggle-osk && swaymsg mode "keyboard"
 mode "keyboard" {
     bindsym Left exec mouse-move -16 0
     bindsym Down exec mouse-move 0 16
     bindsym Up exec mouse-move 0 -16
     bindsym Right exec mouse-move 16 0
-    bindcode 360 exec click-mouse left
-    bindsym xf86close exec toggle-osk && swaymsg mode "default"
-    bindsym xf86dvd exec toggle-osk && swaymsg mode "mouse"
-    bindsym xf86audiomedia exec toggle-osk && $menu & swaymsg mode "app"
-    bindsym xf86info fullscreen
+    bindsym Mod4+Mod1+y exec click-mouse left
+    bindsym Mod4+Mod1+n exec toggle-osk && swaymsg mode "default"
+    bindsym Mod4+Mod1+b exec toggle-osk && swaymsg mode "select"
+    bindsym Mod4+Mod1+m exec toggle-osk && $menu & swaymsg mode "app"
+    bindsym Mod4+Mod1+f fullscreen
 }
-mode "mouse" {
-    bindsym Left exec mouse-move -16 0
-    bindsym Down exec mouse-move 0 16
-    bindsym Up exec mouse-move 0 -16
-    bindsym Right exec mouse-move 16 0
-    bindcode 360 exec click-mouse left
-    bindsym xf86close mode "default"
-    bindsym xf86dvd mode "default"
-    bindsym xf86audiomedia exec $menu & swaymsg mode "app"
-    bindsym xf86info fullscreen
-}
+bindsym Left exec mouse-move -16 0
+bindsym Down exec mouse-move 0 16
+bindsym Up exec mouse-move 0 -16
+bindsym Right exec mouse-move 16 0
+bindsym Mod4+Mod1+y exec click-mouse left
+    #bindsym Mod4+Mod1+m exec $menu & swaymsg mode "app"
+    #bindsym Mod4+Mod1+f fullscreen
 exec dbus-sway-environment
 exec configure-gtk
+exec dotoold
       '';
     };
     "xdg/fuzzel/fuzzel.ini" = {
