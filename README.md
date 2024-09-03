@@ -1,5 +1,5 @@
 # sway-mce
-Sway configuration that may be controlled using a remote. (If you bind the buttons on the remote someehow.)
+Sway configuration that may be controlled using a remote. (If you bind the buttons on the remote somehow.)
 
 ## Buttons
 - Win+Alt+b (Back): Cycle through default/keyboard/select/move/size modes.
