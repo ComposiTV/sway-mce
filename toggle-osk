@@ -1,0 +1,2 @@
+#!/bin/sh
+kill -s 34 `pidof wvkbd-mobintl` # SIGRTMIN
