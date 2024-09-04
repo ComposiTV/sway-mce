@@ -1,6 +1,9 @@
 # sway-mce
 Sway configuration that may be controlled using a remote. (If you bind the buttons on the remote somehow.)
 
+## Dependencies
+`wvkbd`, `dotool`, `fuzzel`, `mousemove`
+
 ## Buttons
 - Win+Alt+b (Back): Cycle through default/keyboard/select/move/size modes.
 - Win+Alt+m (Play/Pause): Opens app launcher.
