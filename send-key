@@ -1,0 +1,2 @@
+#!/bin/sh
+echo key $1 | dotoolc
