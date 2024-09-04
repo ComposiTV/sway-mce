@@ -1,0 +1,2 @@
+#!/bin/sh
+echo mousemove $1 $2 | dotoolc
